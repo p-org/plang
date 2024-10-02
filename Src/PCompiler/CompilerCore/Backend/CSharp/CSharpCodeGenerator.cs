@@ -152,6 +152,7 @@ namespace Plang.Compiler.Backend.CSharp
             context.WriteLine(output, "using PChecker;");
             context.WriteLine(output, "using PChecker.StateMachines;");
             context.WriteLine(output, "using PChecker.StateMachines.Events;");
+            context.WriteLine(output, "using PChecker.StateMachines.Logging;");
             context.WriteLine(output, "using PChecker.Runtime;");
             context.WriteLine(output, "using PChecker.Specifications;");
             context.WriteLine(output, "using Monitor = PChecker.Specifications.Monitors.Monitor;");
@@ -388,6 +389,7 @@ namespace Plang.Compiler.Backend.CSharp
             context.WriteLine(output);
             context.WriteLine(output, "[PChecker.SystematicTesting.Test]");
             context.WriteLine(output, "public static void Execute(ControlledRuntime runtime) {");
+            context.WriteLine(output, "runtime.RegisterLog(new PTimeLogger());");
             context.WriteLine(output, "PModule.runtime = runtime;");
             context.WriteLine(output, "PHelper.InitializeInterfaces();");
             context.WriteLine(output, "PHelper.InitializeEnums();");
@@ -479,13 +481,15 @@ namespace Plang.Compiler.Backend.CSharp
             WriteNameSpacePrologue(context, output);
 
             var declName = context.Names.GetNameForDecl(pEvent);
-
+            string distributionStmt = pEvent.Distribution != ""? $"DelayDistribution = {pEvent.Distribution};": "";
+            string isOrderedStmt = !pEvent.IsOrdered? $"IsOrdered = false;": "";
+            
             // initialize the payload type
             var payloadType = GetCSharpType(pEvent.PayloadType, true);
             context.WriteLine(output, $"internal partial class {declName} : Event");
             context.WriteLine(output, "{");
-            context.WriteLine(output, $"public {declName}() : base() {{}}");
-            context.WriteLine(output, $"public {declName} ({payloadType} payload): base(payload)" + "{ }");
+            context.WriteLine(output, $"public {declName}() : base() {{{distributionStmt} {isOrderedStmt}}}");
+            context.WriteLine(output, $"public {declName} ({payloadType} payload): base(payload)" + $"{{{distributionStmt} {isOrderedStmt}}}");
             context.WriteLine(output, $"public override IPValue Clone() {{ return new {declName}();}}");
             context.WriteLine(output, "}");
 
@@ -1100,6 +1104,13 @@ namespace Plang.Compiler.Backend.CSharp
                         context.WriteLine(output, ";");
                     }
                     context.Write(output, "currentMachine.SendEvent(");
+                    if (sendStmt.DelayDistribution != null)
+                    {
+                        WriteExpr(context, output, sendStmt.Evt);
+                        context.Write(output, ".DelayDistribution = ");
+                        WriteExpr(context, output, sendStmt.DelayDistribution);
+                        context.WriteLine(output, ";");
+                    }
                     WriteExpr(context, output, sendStmt.MachineExpr);
                     context.Write(output, ", (Event)");
                     WriteExpr(context, output, sendStmt.Evt);

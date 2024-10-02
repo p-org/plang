@@ -33,6 +33,11 @@ namespace PChecker.StateMachines.Logging
         public JsonWriter JsonLogger { get; private set; }
 
         /// <summary>
+        /// Is checker strategy statistical.
+        /// </summary>
+        private bool isStatisticalStrategy;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="LogWriter"/> class.
         /// </summary>
         internal LogWriter(CheckerConfiguration checkerConfiguration)
@@ -47,6 +52,8 @@ namespace PChecker.StateMachines.Logging
             {
                 Logger = TextWriter.Null;
             }
+
+            isStatisticalStrategy = checkerConfiguration.SchedulingStrategy is "statistical";
         }
 
         /// <summary>
@@ -97,6 +104,24 @@ namespace PChecker.StateMachines.Logging
         public void LogSendEvent(StateMachineId targetStateMachineId, string senderName, string senderType, string senderState,
             Event e, bool isTargetHalted)
         {
+            if (!isStatisticalStrategy)
+            {
+                IControlledRuntimeLog timeLogger = null;
+                foreach (var log in Logs)
+                {
+                    if (log.GetType().ToString().Equals("Plang.CSharpRuntime.PTimeLogger"))
+                    {
+                        timeLogger = log;
+                        break;
+                    }
+                }
+
+                if (timeLogger is not null)
+                {
+                    Logs.Remove(timeLogger);
+                }
+            }
+
             if (Logs.Count > 0)
             {
                 foreach (var log in Logs)

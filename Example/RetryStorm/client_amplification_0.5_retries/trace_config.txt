@@ -1,0 +1,9 @@
+request_qps = 8;
+response_qps = 10;
+maxTime = 100;
+nServerFails = 0;
+kClientAmplification = 2;
+nRetries = -2;
+retryRateThreshold = 0.5;
+serverFailOffset = 0;
+clientAmplificationOffset = 20;

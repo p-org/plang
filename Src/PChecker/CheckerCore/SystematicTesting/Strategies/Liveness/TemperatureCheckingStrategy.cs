@@ -44,6 +44,13 @@ namespace PChecker.SystematicTesting.Strategies.Liveness
             return SchedulingStrategy.GetNextIntegerChoice(current, maxValue, out next);
         }
 
+        /// <inheritdoc/>
+        public override bool GetSampleFromDistribution(string dist, out double sample)
+        {
+            CheckLivenessTemperature();
+            return SchedulingStrategy.GetSampleFromDistribution(dist, out sample);
+        }
+
         /// <summary>
         /// Checks the liveness temperature of each monitor, and
         /// reports an error if one of the liveness monitors has

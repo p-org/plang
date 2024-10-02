@@ -25,6 +25,13 @@ namespace PChecker.Random
         int Next(int maxValue);
 
         /// <summary>
+        /// Returns a random number more than or equal to minValue and less than maxValue.
+        /// </summary>
+        /// <param name="minValue">Inclusive lower bound</param>
+        /// <param name="maxValue">Exclusive upper bound</param>
+        int Next(int minValue, int maxValue);
+
+        /// <summary>
         /// Returns a random floating-point number that is greater
         /// than or equal to 0.0, and less than 1.0.
         /// </summary>

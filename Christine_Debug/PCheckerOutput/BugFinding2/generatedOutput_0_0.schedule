@@ -1,0 +1,8 @@
+--fair-scheduling
+--liveness-temperature-threshold:50000
+--test-method:tcCMachine
+(0)
+(1)
+(1)
+(1)
+(1)

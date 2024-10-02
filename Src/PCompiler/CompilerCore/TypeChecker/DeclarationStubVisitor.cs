@@ -43,6 +43,17 @@ namespace Plang.Compiler.TypeChecker
 
         #endregion Events
 
+        #region Delays
+        
+        public override object VisitDelayDecl(PParser.DelayDeclContext context)
+        {
+            var symbolName = context.ev.GetText();
+            nodesToDeclarations.Put(context, new Delay(context.ev.GetText(), context));
+            return null;
+        }
+        
+        #endregion
+        
         #region Event sets
 
         public override object VisitEventSetDecl(PParser.EventSetDeclContext context)

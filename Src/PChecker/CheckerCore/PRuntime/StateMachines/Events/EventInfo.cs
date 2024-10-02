@@ -39,5 +39,11 @@ namespace PChecker.StateMachines.Events
         {
             OriginInfo = originInfo;
         }
+        
+        /// <summary>
+        /// Asserts that there must not be more than N instances of the
+        /// event type in the inbox queue of the receiver.
+        /// </summary>
+        internal int Assert { get; set; }
     }
 }

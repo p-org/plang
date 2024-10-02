@@ -57,6 +57,7 @@ START     : 'start' ;
 STATE     : 'state' ;
 THIS      : 'this' ;
 TYPE      : 'type' ;
+DELAY     : 'delay' ;
 VALUES    : 'values' ;
 VAR       : 'var' ;
 WHILE     : 'while' ;

@@ -61,6 +61,22 @@ namespace Plang.Compiler.TypeChecker
             // SEMI
             return pEvent;
         }
+        
+        public override object VisitDelayDecl(PParser.DelayDeclContext context)
+        {
+
+            var delay = (Delay) nodesToDeclarations.Get(context);
+
+            if (CurrentScope.Events.All(ev => ev.Name != delay.Name))
+            {
+                throw Handler.MissingDeclaration(context, "event", delay.Name);
+            }
+            var evDecl = CurrentScope.Events.First(ev => ev.Name == delay.Name);
+            evDecl.Distribution = context.StringLiteral().GetText();
+            evDecl.IsOrdered = context.BoolLiteral() == null || bool.Parse(context.BoolLiteral().GetText());
+            
+            return delay;
+        }
 
         #endregion
 

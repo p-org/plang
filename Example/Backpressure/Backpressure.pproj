@@ -1,0 +1,11 @@
+<!-- P project file for the Two Phase Commit example -->
+<Project>
+<ProjectName>Backpressure</ProjectName>
+<InputFiles>
+	<PFile>./PSrc/</PFile>
+	<PFile>./PSpec/</PFile>
+	<PFile>./PTst/</PFile>
+	<PFile>./PForeign/</PFile>
+</InputFiles>
+<OutputDir>./PGenerated/</OutputDir>
+</Project>

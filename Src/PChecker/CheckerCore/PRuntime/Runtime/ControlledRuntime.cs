@@ -138,6 +138,18 @@ namespace PChecker.SystematicTesting
         internal readonly int? RootTaskId;
         
         /// <summary>
+        /// Global time.
+        /// </summary>
+        internal static readonly Timestamp GlobalTime = new();
+
+        /// <summary>
+        /// The scheduling strategy used for program exploration.
+        /// </summary>
+        private readonly ISchedulingStrategy Strategy;
+
+        public readonly List<StateMachine> StateMachines;
+        
+        /// <summary>
         /// Cache storing state machine constructors.
         /// </summary>
         private static readonly Dictionary<Type, Func<StateMachine>> StateMachineConstructorCache =
@@ -253,9 +265,22 @@ namespace PChecker.SystematicTesting
             {
                 strategy = new TemperatureCheckingStrategy(checkerConfiguration, Monitors, strategy);
             }
+            
+            if (CheckerConfiguration.SchedulingStrategy.Equals("statistical"))
+            {
+                Strategy = strategy;
+            }
+            else
+            {
+                Strategy = null;
+            }
 
             Scheduler = new OperationScheduler(this, strategy, scheduleTrace, CheckerConfiguration);
             TaskController = new TaskController(this, Scheduler);
+            
+            StateMachines = new List<StateMachine>();
+
+            GlobalTime.SetTime(0);
 
             // Update the current asynchronous control flow with this runtime instance,
             // allowing future retrieval in the same asynchronous call stack.
@@ -408,6 +433,11 @@ namespace PChecker.SystematicTesting
                     AssignAsyncControlFlowRuntime(this);
 
                     OperationScheduler.StartOperation(op);
+                    
+                    if (CheckerConfiguration.SchedulingStrategy.Equals("statistical"))
+                    {
+                        RunGlobalTimeHandler();
+                    }
 
                     if (testMethod is Action<ControlledRuntime> actionWithRuntime)
                     {
@@ -447,6 +477,42 @@ namespace PChecker.SystematicTesting
             Scheduler.WaitOperationStart(op);
         }
         
+        internal void RunGlobalTimeHandler()
+        {
+            var operationId = ulong.MaxValue;
+            var op = new TaskOperation(operationId, Scheduler);
+            Scheduler.RegisterOperation(op);
+            op.OnEnabled();
+
+            var task = new Task(() =>
+            {
+                try
+                {
+                    while (op.Status is AsyncOperationStatus.Enabled)
+                    {
+                        // Update the current asynchronous control flow with the current runtime instance,
+                        // allowing future retrieval in the same asynchronous call stack.
+                        AssignAsyncControlFlowRuntime(this);
+                        OperationScheduler.StartOperation(op);
+                        if (!RunDelayedStateMachineEventHandlers())
+                        {
+                            op.OnCompleted();
+                        }
+                        // Task has completed, schedule the next enabled operation.
+                        Scheduler.ScheduleNextEnabledOperation(AsyncOperationType.Stop);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ProcessUnhandledExceptionInOperation(op, ex);
+                }
+            });
+
+            Scheduler.ScheduleOperation(op, task.Id);
+            task.Start();
+            Scheduler.WaitOperationStart(op);
+        }
+        
         /// <summary>
         /// Returns the next available unique operation id.
         /// </summary>
@@ -474,6 +540,10 @@ namespace PChecker.SystematicTesting
             AssertExpectedCallerStateMachine(creator, "CreateStateMachine");
 
             var stateMachine = CreateStateMachine(id, type, name, creator);
+            lock (StateMachines)
+            {
+                StateMachines.Add(stateMachine);
+            }
             LogWriter.LogCreateStateMachine(stateMachine.Id, creator?.Id.Name, creator?.Id.Type);
             RunStateMachineEventHandler(stateMachine, initialEvent, true, null);
             return stateMachine.Id;
@@ -531,7 +601,15 @@ namespace PChecker.SystematicTesting
             var stateMachine = Create(type);
             IStateMachineManager stateMachineManager = new StateMachineManager(this, stateMachine);
 
-            IEventQueue eventQueue = new EventQueue(stateMachineManager, stateMachine);
+            IEventQueue eventQueue = null;
+            if (CheckerConfiguration.SchedulingStrategy.Equals("statistical"))
+            {
+                eventQueue = new TimedMockEventQueue(stateMachineManager, stateMachine, Strategy);
+            }
+            else
+            {
+                eventQueue = new EventQueue(stateMachineManager, stateMachine);
+            }
             stateMachine.Configure(this, id, stateMachineManager, eventQueue);
             stateMachine.SetupEventHandlers();
             stateMachine.self = new PMachineValue(id, stateMachine.receives.ToList());
@@ -734,6 +812,45 @@ namespace PChecker.SystematicTesting
             Scheduler.ScheduleOperation(op, task.Id);
             task.Start();
             Scheduler.WaitOperationStart(op);
+        }
+        
+        private bool RunDelayedStateMachineEventHandlers()
+        {
+            List<StateMachine> stateMachinesToRun = null;
+            lock (StateMachines)
+            {
+                if (StateMachines.All(a => a.ScheduledDelayedTimestamp != GlobalTime))
+                {
+                    var delayedStateMachines = StateMachines.Where(a => a.ScheduledDelayedTimestamp > GlobalTime);
+                    if (delayedStateMachines.Any())
+                    {
+                        var minTimestamp = delayedStateMachines.Min(a => a.ScheduledDelayedTimestamp);
+                        stateMachinesToRun = StateMachines.Where(a => a.ScheduledDelayedTimestamp == minTimestamp).ToList();
+                        GlobalTime.SetTime(minTimestamp.GetTime());
+                    }
+                }
+            }
+
+            // Note that here we only run actors that are waiting for an event with dequeue time equal to minTimestamp.
+            // This is ok for handling late events that are deferred. For example, an event with dequeue time 10 might
+            // be deferred in the current state, and the machine is waiting for an event with dequeue time 20 to exit
+            // this state. We increment the time to 20, handle that event, and transition to the new state. This dequeue
+            // operation will trigger running the event handler of the actor again since now early events are available.
+            if (stateMachinesToRun != null)
+            {
+                foreach (var stateMachine in stateMachinesToRun)
+                {
+                    if (!stateMachine.ReceiveDelayedWaitEvents())
+                    {
+                        stateMachine.Manager.IsEventHandlerRunning = true;
+                        RunStateMachineEventHandler(stateMachine, null, false, null);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

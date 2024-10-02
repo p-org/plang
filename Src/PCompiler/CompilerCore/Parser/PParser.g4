@@ -52,6 +52,7 @@ funParam : name=iden COLON type ;
 topDecl : typeDefDecl
         | enumTypeDefDecl
         | eventDecl
+        | delayDecl
         | eventSetDecl
         | interfaceDecl
         | implMachineDecl
@@ -79,6 +80,7 @@ eventDecl : EVENT name=iden cardinality? (COLON type)? SEMI;
 cardinality : ASSERT IntLiteral
             | ASSUME IntLiteral
             ;
+delayDecl: DELAY ev=iden COLON StringLiteral (COLON BoolLiteral)? SEMI;
 
 eventSetDecl : EVENTSET name=iden ASSIGN LBRACE eventSetLiteral RBRACE SEMI ;
 eventSetLiteral : events+=nonDefaultEvent (COMMA events+=nonDefaultEvent)* ;
@@ -149,8 +151,8 @@ statement : LBRACE statement* RBRACE							# CompoundStmt
           | NEW iden LPAREN rvalueList? RPAREN SEMI				# CtorStmt
           | fun=iden LPAREN rvalueList? RPAREN SEMI				# FunCallStmt
           | RAISE expr (COMMA rvalueList)? SEMI					# RaiseStmt
-          | SEND machine=expr COMMA event=expr
-                              (COMMA rvalueList)? SEMI			# SendStmt
+          | SEND machine=expr COMMA event=expr 
+                (COMMA rvalueList)? (COMMA DELAY dist=expr)? SEMI	# SendStmt
           | ANNOUNCE expr (COMMA rvalueList)? SEMI				# AnnounceStmt
           | GOTO stateName (COMMA rvalueList)? SEMI				# GotoStmt
           | RECEIVE LBRACE recvCase+ RBRACE						# ReceiveStmt

@@ -27,6 +27,10 @@ namespace Plang.Compiler.TypeChecker.AST.Declarations
         public bool IsBuiltIn => IsHaltEvent || IsNullEvent;
 
         public string Name { get; }
+
+        public string Distribution = "";
+
+        public bool IsOrdered = true;
         public ParserRuleContext SourceLocation { get; }
     }
 }

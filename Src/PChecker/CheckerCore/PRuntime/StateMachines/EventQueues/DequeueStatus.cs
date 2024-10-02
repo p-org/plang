@@ -26,6 +26,11 @@ namespace PChecker.StateMachines.EventQueues
         /// <summary>
         /// No event available to dequeue.
         /// </summary>
-        NotAvailable
+        NotAvailable,
+
+        /// <summary>
+        /// No event available to dequeue at the current time step.
+        /// </summary>
+        Delayed
     }
 }

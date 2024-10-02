@@ -49,6 +49,9 @@ namespace PChecker.SystematicTesting.Strategies.Liveness
         public abstract bool GetNextIntegerChoice(AsyncOperation current, int maxValue, out int next);
 
         /// <inheritdoc/>
+        public abstract bool GetSampleFromDistribution(string dist, out double sample);
+
+        /// <inheritdoc/>
         public virtual bool PrepareForNextIteration()
         {
             return SchedulingStrategy.PrepareForNextIteration();

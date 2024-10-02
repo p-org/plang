@@ -54,7 +54,7 @@ namespace PChecker.StateMachines
         /// The inbox of the state machine. Incoming events are enqueued here.
         /// Events are dequeued to be processed.
         /// </summary>
-        private protected IEventQueue Inbox;
+        private static protected IEventQueue Inbox;
         
         /// <summary>
         /// Cache of state machine types to a map of action names to action declarations.
@@ -122,6 +122,11 @@ namespace PChecker.StateMachines
         /// Checks if a default handler is available.
         /// </summary>
         internal bool IsDefaultHandlerAvailable { get; private set; }
+        
+        /// <summary>
+        /// Returns the min timestamp that will unblock the actor.
+        /// </summary>
+        internal Timestamp ScheduledDelayedTimestamp => GetScheduledDelayedTimestamp();
 
         /// <summary>
         /// Newly created Transition that hasn't been returned from InvokeActionAsync yet.
@@ -567,6 +572,29 @@ namespace PChecker.StateMachines
         }
         
         /// <summary>
+        /// Returns the min timestamp that will unblock the actor. If the actor is blocked on a receive and those events
+        /// are in the queue, then min timestamp of those events is returned. Otherwise, min timestamp of events waiting
+        /// to be dequeued is returned.
+        /// </summary>
+        private Timestamp GetScheduledDelayedTimestamp()
+        {
+            var waitEvent = Inbox.GetDelayedWaitEvent();
+            if (waitEvent is not null)
+            {
+                return waitEvent.DequeueTime;
+            }
+
+            var eventTuple = Inbox.CheckDequeue();
+            if (eventTuple == default)
+            {
+                return Timestamp.DefaultTimestamp;
+            }
+
+            return eventTuple.e is not null ? eventTuple.e.DequeueTime : Timestamp.DefaultTimestamp;
+        }
+
+        
+        /// <summary>
         /// Runs the event handler. The handler terminates if there is no next
         /// event to process or if the state machine has halted.
         /// </summary>
@@ -604,6 +632,11 @@ namespace PChecker.StateMachines
                 else if (status is DequeueStatus.NotAvailable)
                 {
                     // Terminate the handler as there is no event available.
+                    break;
+                }
+                else if (status is DequeueStatus.Delayed)
+                {
+                    // Set the flag and terminate.
                     break;
                 }
 
@@ -1597,6 +1630,15 @@ namespace PChecker.StateMachines
         {
             var state = CurrentState is null ? "<unknown>" : CurrentStateName;
             Runtime.WrapAndThrowException(ex, "{0} (state '{1}', action '{2}')", Id, state, actionName);
+        }
+        
+        /// <summary>
+        /// Tries to receive events that are blocking the actor and that can be received in the current timestamp.
+        /// If such events are received, then returns true; otherwise, returns false.
+        /// </summary>
+        public bool ReceiveDelayedWaitEvents()
+        {
+            return Inbox.ReceiveDelayedWaitEvents();
         }
 
         /// <summary>

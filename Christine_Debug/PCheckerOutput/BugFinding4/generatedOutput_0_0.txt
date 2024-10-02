@@ -1,0 +1,21 @@
+<TestLog> Running test 'tcCMachine'.
+<CreateLog> PImplementation.CMonitor was created.
+<MonitorLog> PImplementation.CMonitor enters state 'Init'.
+<CreateLog> CMachine(1) was created by task '2'.
+<CreateLog> CMachine(1) was created by task '2'.
+<StateLog> CMachine(1) enters state 'Init'.
+<CreateLog> B(2) was created by CMachine(1).
+<CreateLog> B(2) was created by CMachine(1).
+<StateLog> B(2) enters state 'Init'.
+<ReceiveLog> B(2) is waiting to dequeue an event of type 'E' or 'PHalt' in state 'Init'.
+<SendLog> 'CMachine(1)' in state 'Init' sent event 'E with payload (0)' to 'B(2)'.
+<ReceiveLog> 'B(2)' dequeued event 'E with payload (0)' and unblocked in state 'Init'.
+<SendLog> 'CMachine(1)' in state 'Init' sent event 'G with payload (1)' to 'B(2)'.
+<ErrorLog> CMachine(1) invoked ReceiveEventAsync on behalf of B(2).
+<StrategyLog> Found bug using 'random' strategy.
+<StrategyLog> Checking statistics:
+<StrategyLog> Found 1 bug.
+<StrategyLog> Scheduling statistics:
+<StrategyLog> Explored 1 schedule
+<StrategyLog> Found 100.00% buggy schedules.
+<StrategyLog> Number of scheduling points in terminating schedules: 6 (min), 6 (avg), 6 (max).

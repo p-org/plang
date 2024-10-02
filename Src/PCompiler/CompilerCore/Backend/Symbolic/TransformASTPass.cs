@@ -338,80 +338,80 @@ namespace Plang.Compiler.Backend.Symbolic
             }
         }
 
-        static private IPStmt ReplaceVars(IPStmt stmt, Dictionary<Variable,Variable> varMap)
-        {
-            if (stmt == null) return null;
-            switch(stmt)
-            {
-                case AddStmt addStmt:
-                    return new AddStmt(addStmt.SourceLocation, ReplaceVars(addStmt.Variable, varMap), ReplaceVars(addStmt.Value, varMap));
-                case AnnounceStmt announceStmt:
-                    return new AnnounceStmt(announceStmt.SourceLocation, ReplaceVars(announceStmt.Event, varMap), ReplaceVars(announceStmt.Payload, varMap));
-                case AssertStmt assertStmt:
-                    return new AssertStmt(assertStmt.SourceLocation, ReplaceVars(assertStmt.Assertion, varMap), ReplaceVars(assertStmt.Message, varMap));
-                case AssignStmt assignStmt:
-                    return new AssignStmt(assignStmt.SourceLocation, ReplaceVars(assignStmt.Location, varMap), ReplaceVars(assignStmt.Value, varMap));
-                case CompoundStmt compoundStmt:
-                    var statements = new List<IPStmt>();
-                    foreach (var inner in compoundStmt.Statements) statements.Add(ReplaceVars(inner, varMap));
-                    return new CompoundStmt(compoundStmt.SourceLocation, statements);
-                case CtorStmt ctorStmt:
-                    var arguments = new List<IPExpr>();
-                    foreach (var arg in ctorStmt.Arguments) arguments.Add(ReplaceVars(arg, varMap));
-                    return new CtorStmt(ctorStmt.SourceLocation, ctorStmt.Interface, arguments);
-                case FunCallStmt funCallStmt:
-                    var newArgs = new List<IPExpr>();
-                    foreach (var arg in funCallStmt.ArgsList) newArgs.Add(ReplaceVars(arg, varMap));
-                    return new FunCallStmt(funCallStmt.SourceLocation, funCallStmt.Function, new List<IPExpr>(newArgs));
-                case GotoStmt gotoStmt:
-                    return new GotoStmt(gotoStmt.SourceLocation, gotoStmt.State, ReplaceVars(gotoStmt.Payload, varMap));
-                case IfStmt ifStmt:
-                    return new IfStmt(ifStmt.SourceLocation, ReplaceVars(ifStmt.Condition, varMap), ReplaceVars(ifStmt.ThenBranch, varMap), ReplaceVars(ifStmt.ElseBranch, varMap));
-                case InsertStmt insertStmt:
-                    return new InsertStmt(insertStmt.SourceLocation, ReplaceVars(insertStmt.Variable, varMap), ReplaceVars(insertStmt.Index, varMap), ReplaceVars(insertStmt.Value, varMap));
-                case MoveAssignStmt moveAssignStmt:
-                    var fromVar = moveAssignStmt.FromVariable;
-                    if (varMap.ContainsKey(moveAssignStmt.FromVariable)) fromVar = varMap[moveAssignStmt.FromVariable];
-                    return new MoveAssignStmt(moveAssignStmt.SourceLocation, ReplaceVars(moveAssignStmt.ToLocation, varMap), fromVar);
-                case PrintStmt printStmt:
-                    return new PrintStmt(printStmt.SourceLocation, ReplaceVars(printStmt.Message, varMap));
-                case RaiseStmt raiseStmt:
-                    var payload = new List<IPExpr>();
-                    foreach(var p in raiseStmt.Payload) payload.Add(ReplaceVars(p, varMap));
-                    return new RaiseStmt(raiseStmt.SourceLocation, ReplaceVars(raiseStmt.Event, varMap), payload);
-                case ReceiveStmt receiveStmt:
-                    var cases = new Dictionary<Event, Function>();
-                    foreach(var entry in receiveStmt.Cases)
-                    {
-                        var replacement = new Function(entry.Value.Name, entry.Value.SourceLocation);
-                        replacement.Owner = entry.Value.Owner;
-                        replacement.ParentFunction = entry.Value.ParentFunction;
-                        replacement.CanReceive = entry.Value.CanReceive;
-                        replacement.Role = entry.Value.Role;
-                        replacement.Scope = entry.Value.Scope;
-                        foreach (var local in entry.Value.LocalVariables) replacement.AddLocalVariable(local);
-                        foreach (var i in entry.Value.CreatesInterfaces) replacement.AddCreatesInterface(i);
-                        foreach (var param in entry.Value.Signature.Parameters) replacement.Signature.Parameters.Add(param);
-                        replacement.Signature.ReturnType = entry.Value.Signature.ReturnType;
-                        foreach (var callee in entry.Value.Callees) replacement.AddCallee(callee);
-                        replacement.Body = (CompoundStmt) ReplaceVars(entry.Value.Body, varMap);
-                        cases.Add(entry.Key, replacement);
-                    }
-                    return new ReceiveStmt(receiveStmt.SourceLocation, cases);
-                case RemoveStmt removeStmt:
-                    return new RemoveStmt(removeStmt.SourceLocation, ReplaceVars(removeStmt.Variable, varMap), ReplaceVars(removeStmt.Value, varMap));
-                case ReturnStmt returnStmt:
-                    return new ReturnStmt(returnStmt.SourceLocation, ReplaceVars(returnStmt.ReturnValue, varMap));
-                case SendStmt sendStmt:
-                    var sendArgs = new List<IPExpr>();
-                    foreach (var arg in sendStmt.Arguments) sendArgs.Add(ReplaceVars(arg, varMap));
-                    return new SendStmt(sendStmt.SourceLocation, ReplaceVars(sendStmt.MachineExpr, varMap), ReplaceVars(sendStmt.Evt, varMap), sendArgs);
-                case WhileStmt whileStmt:
-                    return new WhileStmt(whileStmt.SourceLocation, ReplaceVars(whileStmt.Condition, varMap), ReplaceVars(whileStmt.Body, varMap));
-                default:
-                    return stmt;
-            }
-        }
+         static private IPStmt ReplaceVars(IPStmt stmt, Dictionary<Variable,Variable> varMap)
+         {
+             if (stmt == null) return null;
+             switch(stmt)
+             {
+                 case AddStmt addStmt:
+                     return new AddStmt(addStmt.SourceLocation, ReplaceVars(addStmt.Variable, varMap), ReplaceVars(addStmt.Value, varMap));
+                 case AnnounceStmt announceStmt:
+                     return new AnnounceStmt(announceStmt.SourceLocation, ReplaceVars(announceStmt.Event, varMap), ReplaceVars(announceStmt.Payload, varMap));
+                 case AssertStmt assertStmt:
+                     return new AssertStmt(assertStmt.SourceLocation, ReplaceVars(assertStmt.Assertion, varMap), ReplaceVars(assertStmt.Message, varMap));
+                 case AssignStmt assignStmt:
+                     return new AssignStmt(assignStmt.SourceLocation, ReplaceVars(assignStmt.Location, varMap), ReplaceVars(assignStmt.Value, varMap));
+                 case CompoundStmt compoundStmt:
+                     var statements = new List<IPStmt>();
+                     foreach (var inner in compoundStmt.Statements) statements.Add(ReplaceVars(inner, varMap));
+                     return new CompoundStmt(compoundStmt.SourceLocation, statements);
+                 case CtorStmt ctorStmt:
+                     var arguments = new List<IPExpr>();
+                     foreach (var arg in ctorStmt.Arguments) arguments.Add(ReplaceVars(arg, varMap));
+                     return new CtorStmt(ctorStmt.SourceLocation, ctorStmt.Interface, arguments);
+                 case FunCallStmt funCallStmt:
+                     var newArgs = new List<IPExpr>();
+                     foreach (var arg in funCallStmt.ArgsList) newArgs.Add(ReplaceVars(arg, varMap));
+                     return new FunCallStmt(funCallStmt.SourceLocation, funCallStmt.Function, new List<IPExpr>(newArgs));
+                 case GotoStmt gotoStmt:
+                     return new GotoStmt(gotoStmt.SourceLocation, gotoStmt.State, ReplaceVars(gotoStmt.Payload, varMap));
+                 case IfStmt ifStmt:
+                     return new IfStmt(ifStmt.SourceLocation, ReplaceVars(ifStmt.Condition, varMap), ReplaceVars(ifStmt.ThenBranch, varMap), ReplaceVars(ifStmt.ElseBranch, varMap));
+                 case InsertStmt insertStmt:
+                     return new InsertStmt(insertStmt.SourceLocation, ReplaceVars(insertStmt.Variable, varMap), ReplaceVars(insertStmt.Index, varMap), ReplaceVars(insertStmt.Value, varMap));
+                 case MoveAssignStmt moveAssignStmt:
+                     var fromVar = moveAssignStmt.FromVariable;
+                     if (varMap.ContainsKey(moveAssignStmt.FromVariable)) fromVar = varMap[moveAssignStmt.FromVariable];
+                     return new MoveAssignStmt(moveAssignStmt.SourceLocation, ReplaceVars(moveAssignStmt.ToLocation, varMap), fromVar);
+                 case PrintStmt printStmt:
+                     return new PrintStmt(printStmt.SourceLocation, ReplaceVars(printStmt.Message, varMap));
+                 case RaiseStmt raiseStmt:
+                     var payload = new List<IPExpr>();
+                     foreach(var p in raiseStmt.Payload) payload.Add(ReplaceVars(p, varMap));
+                     return new RaiseStmt(raiseStmt.SourceLocation, ReplaceVars(raiseStmt.Event, varMap), payload);
+                 case ReceiveStmt receiveStmt:
+                     var cases = new Dictionary<Event, Function>();
+                     foreach(var entry in receiveStmt.Cases)
+                     {
+                         var replacement = new Function(entry.Value.Name, entry.Value.SourceLocation);
+                         replacement.Owner = entry.Value.Owner;
+                         replacement.ParentFunction = entry.Value.ParentFunction;
+                         replacement.CanReceive = entry.Value.CanReceive;
+                         replacement.Role = entry.Value.Role;
+                         replacement.Scope = entry.Value.Scope;
+                         foreach (var local in entry.Value.LocalVariables) replacement.AddLocalVariable(local);
+                         foreach (var i in entry.Value.CreatesInterfaces) replacement.AddCreatesInterface(i);
+                         foreach (var param in entry.Value.Signature.Parameters) replacement.Signature.Parameters.Add(param);
+                         replacement.Signature.ReturnType = entry.Value.Signature.ReturnType;
+                         foreach (var callee in entry.Value.Callees) replacement.AddCallee(callee);
+                         replacement.Body = (CompoundStmt) ReplaceVars(entry.Value.Body, varMap);
+                         cases.Add(entry.Key, replacement);
+                     }
+                     return new ReceiveStmt(receiveStmt.SourceLocation, cases);
+                 case RemoveStmt removeStmt:
+                     return new RemoveStmt(removeStmt.SourceLocation, ReplaceVars(removeStmt.Variable, varMap), ReplaceVars(removeStmt.Value, varMap));
+                 case ReturnStmt returnStmt:
+                     return new ReturnStmt(returnStmt.SourceLocation, ReplaceVars(returnStmt.ReturnValue, varMap));
+                 case SendStmt sendStmt:
+                     var sendArgs = new List<IPExpr>();
+                     foreach (var arg in sendStmt.Arguments) sendArgs.Add(ReplaceVars(arg, varMap));
+                     return new SendStmt(sendStmt.SourceLocation, ReplaceVars(sendStmt.MachineExpr, varMap), ReplaceVars(sendStmt.Evt, varMap), sendArgs, sendStmt.DelayDistribution);
+                 case WhileStmt whileStmt:
+                     return new WhileStmt(whileStmt.SourceLocation, ReplaceVars(whileStmt.Condition, varMap), ReplaceVars(whileStmt.Body, varMap));
+                 default:
+                     return stmt;
+             }
+         }
 
         static private IPExpr ReplaceVars(IPExpr expr, Dictionary<Variable,Variable> varMap)
         {

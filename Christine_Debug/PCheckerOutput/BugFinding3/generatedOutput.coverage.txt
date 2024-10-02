@@ -1,0 +1,28 @@
+Total event coverage: 100.0%
+============================
+StateMachine: B
+===============
+Event coverage: 100.0%
+
+	State: Init
+		State has no expected events, so coverage is 100%
+		Events received: E, G
+
+StateMachine: CMachine
+======================
+Event coverage: 100.0%
+
+	State: Init
+		State has no expected events, so coverage is 100%
+		Events sent: E, G
+
+Monitor: CMonitor
+=================
+Event coverage: 100.0%
+
+	State: Init
+		State event coverage: 100.0%
+		Events received: G
+		Previous states: Init
+		Next states: Init
+
