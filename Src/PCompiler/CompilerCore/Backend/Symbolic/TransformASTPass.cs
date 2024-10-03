@@ -45,7 +45,7 @@ namespace Plang.Compiler.Backend.Symbolic
                     if (function.IsForeign)
                         return function;
                     else
-                    if (function.CanReceive == true)
+                    if (function.CanReceive)
                     {
                         return null;
                     }
@@ -150,7 +150,7 @@ namespace Plang.Compiler.Backend.Symbolic
 
             if (transformedState.Exit != null)
             {
-                if (transformedState.Exit.CanReceive == true)
+                if (transformedState.Exit.CanReceive)
                 {
                     throw new NotImplementedException($"Receive in state exit functions are not supported, found in state {transformedState.Name} of machine {transformedState.OwningMachine.Name}");
                 }
@@ -281,7 +281,7 @@ namespace Plang.Compiler.Backend.Symbolic
                     foreach (var statement in compound.Statements) InlineStmt(function, statement, body);
                     break;
                 case FunCallStmt call:
-                    if ((!call.Function.IsForeign) & (call.Function.CanReceive == true))
+                    if ((!call.Function.IsForeign) & (call.Function.CanReceive))
                     {
                         var inlined = InlineInFunction(call.Function);
                         if (inlined)
@@ -323,7 +323,7 @@ namespace Plang.Compiler.Backend.Symbolic
 
         static private bool InlineInFunction(Function function)
         {
-            if (!function.Callees.Contains(function) && (function.CanReceive == true)) {
+            if (!function.Callees.Contains(function) && (function.CanReceive)) {
                 var body = new List<IPStmt>();
                 foreach (var stmt in function.Body.Statements)
                 {
@@ -606,7 +606,7 @@ namespace Plang.Compiler.Backend.Symbolic
                                 var canReceiveInCase = false;
                                 foreach (var c in recv.Cases)
                                 {
-                                    if (c.Value.CanReceive == true)
+                                    if (c.Value.CanReceive)
                                     {
                                         canReceiveInCase = true;
                                         if (c.Value.LocalVariables.Count() != 0)
@@ -659,7 +659,7 @@ namespace Plang.Compiler.Backend.Symbolic
                                         }
                                     }
 
-                                    if (canReceiveInCase == true && after != null)
+                                    if (canReceiveInCase && after != null)
                                     {
                                         var caseStmts = new List<IPStmt>();
                                         var caseBody = c.Value.Body;

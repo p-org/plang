@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using PChecker.SystematicTesting;
 using PChecker.Testing;
 using PChecker.Utilities;
@@ -172,7 +173,14 @@ namespace PChecker.Scheduling
             }
 
             Console.WriteLine(GlobalTestReport.GetText(_checkerConfiguration, "..."));
-            Console.WriteLine($"... Elapsed {Profiler.Results()} sec.");
+
+            var file = Path.GetFileNameWithoutExtension(GlobalTestReport.CheckerConfiguration.AssemblyToBeAnalyzed);
+            var directory = GlobalTestReport.CheckerConfiguration.OutputDirectory;
+            var pintPath = directory + file + "_pchecker_summary.txt";
+            Console.WriteLine($"..... Writing {pintPath}");
+            File.WriteAllText(pintPath, GlobalTestReport.GetSummaryText(Profiler));
+
+            Console.WriteLine($"... Elapsed {Profiler.GetElapsedTime():0.##} sec and used {Profiler.GetMaxMemoryUsage():0.##} GB.");
 
             if (GlobalTestReport.InternalErrors.Count > 0)
             {

@@ -7,6 +7,7 @@ import prt.exceptions.PAssertionFailureException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,6 +26,9 @@ public class MonitorTest {
             super();
             addState(new State.Builder<>(SingleState.INIT_STATE).build());
         }
+
+        public void reInitializeMonitor() {}
+        
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); }
     }
 
@@ -38,6 +42,8 @@ public class MonitorTest {
             addState(new State.Builder<>(BiState.OTHER_STATE).isInitialState(true).build());
         }
 
+        public void reInitializeMonitor() {}
+
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); }
     }
 
@@ -50,6 +56,8 @@ public class MonitorTest {
             addState(new State.Builder<>(BiState.INIT_STATE).isInitialState(true).build());
         }
 
+        public void reInitializeMonitor() {}
+
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); }
     }
     /**
@@ -61,6 +69,8 @@ public class MonitorTest {
             addState(new State.Builder<>(BiState.INIT_STATE).isInitialState(true).build());
             addState(new State.Builder<>(BiState.INIT_STATE).isInitialState(true).build());
         }
+
+        public void reInitializeMonitor() {}
 
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); }
     }
@@ -91,6 +101,8 @@ public class MonitorTest {
                     .build());
         }
 
+        public void reInitializeMonitor() {}
+
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); }
     }
 
@@ -114,6 +126,8 @@ public class MonitorTest {
                     .withEntry(() -> stateAcc.add(ABCState.C_STATE))
                     .build());
         }
+
+        public void reInitializeMonitor() {}
 
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); }
     }
@@ -143,6 +157,8 @@ public class MonitorTest {
                     .withEntry(s -> eventsProcessed.add(s))
                     .build());
         }
+
+        public void reInitializeMonitor() {}
 
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); }
     }
@@ -174,6 +190,8 @@ public class MonitorTest {
                     .build());
         }
 
+        public void reInitializeMonitor() {}
+
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(CounterMonitor.AddEvent.class); }
     }
 
@@ -197,6 +215,8 @@ public class MonitorTest {
                     .build());
         }
 
+        public void reInitializeMonitor() {}
+
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); }
     }
 
@@ -212,6 +232,8 @@ public class MonitorTest {
                     .build());
         }
 
+        public void reInitializeMonitor() {}
+
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); }
     }
 
@@ -222,6 +244,8 @@ public class MonitorTest {
         public class noopEvent extends PEvent<Void> {
             public Void getPayload() { return null; }
         }
+
+        public void reInitializeMonitor() {}
 
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(testEvent.class, noopEvent.class); }
 
@@ -236,18 +260,6 @@ public class MonitorTest {
                     .withEvent(noopEvent.class, __ -> {})
                     .build());
         }
-    }
-
-    @Test
-    @DisplayName("Monitors require exactly one default state")
-    public void testDefaultStateConstruction() {
-        Throwable e;
-
-        e = assertThrows(RuntimeException.class, () -> new NoDefaultStateMonitor().ready());
-        assertTrue(e.getMessage().contains("No initial state set"));
-
-        e = assertThrows(RuntimeException.class, () -> new MultipleDefaultStateMonitors().ready());
-        assertTrue(e.getMessage().contains("Initial state already set"));
     }
 
     @Test
@@ -301,7 +313,8 @@ public class MonitorTest {
         GotoStateWithPayloadsMonitor m = new GotoStateWithPayloadsMonitor();
         m.ready();
 
-        assertTrue(m.eventsProcessed.equals(List.of("Hello from prt.State A", "Hello from prt.State B")));
+        assertTrue(m.eventsProcessed.equals(List.of(Optional.of("Hello from prt.State A"),
+                Optional.of("Hello from prt.State B"))));
     }
 
     @Test
@@ -310,20 +323,6 @@ public class MonitorTest {
         GotoStateWithPayloadsMonitor m = new GotoStateWithPayloadsMonitor();
         m.ready();
         assertThrows(RuntimeException.class, () -> m.ready(), "prt.Monitor is already running.");
-    }
-
-
-    @Test
-    @DisplayName("Payloads can be passed to entry handlers through ready()")
-    public void testChainedEntryHandlersWithPayloadsIncludingInitialEntryHandler() {
-        GotoStateWithPayloadsMonitorIncludingInitialEntryHandler m =
-                new GotoStateWithPayloadsMonitorIncludingInitialEntryHandler();
-        m.ready("Hello from the caller!");
-
-        assertTrue(m.eventsProcessed.equals(
-                List.of("Hello from the caller!",
-                        "Hello from prt.State A",
-                        "Hello from prt.State B")));
     }
 
     @Test

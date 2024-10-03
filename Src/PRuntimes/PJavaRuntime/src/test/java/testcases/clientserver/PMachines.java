@@ -47,6 +47,17 @@ public class PMachines {
                     .build());
         } // constructor
 
+        public void reInitializeMonitor() {
+            registerState(prt.State.keyedOn(PrtStates.Init)
+                    .isInitialState(true)
+                    .withEvent(PEvents.eSpec_BankBalanceIsAlwaysCorrect_Init.class, p -> { Anon(p); gotoState(PrtStates.WaitForWithDrawReqAndResp); })
+                    .build());
+            registerState(prt.State.keyedOn(PrtStates.WaitForWithDrawReqAndResp)
+                    .withEvent(PEvents.eWithDrawReq.class, this::Anon_1)
+                    .withEvent(PEvents.eWithDrawResp.class, this::Anon_2)
+                    .build());
+        }
+
         public java.util.List<Class<? extends prt.events.PEvent<?>>> getEventTypes() {
             return java.util.Arrays.asList(PEvents.eSpec_BankBalanceIsAlwaysCorrect_Init.class, PEvents.eWithDrawReq.class, PEvents.eWithDrawResp.class);
         }
@@ -226,6 +237,17 @@ public class PMachines {
                     .withEvent(PEvents.eWithDrawReq.class, p -> { Anon_5(p); gotoState(PrtStates.PendingReqs); })
                     .build());
         } // constructor
+
+        public void reInitializeMonitor() {
+            registerState(prt.State.keyedOn(PrtStates.NopendingRequests)
+                    .isInitialState(true)
+                    .withEvent(PEvents.eWithDrawReq.class, p -> { Anon_3(p); gotoState(PrtStates.PendingReqs); })
+                    .build());
+            registerState(prt.State.keyedOn(PrtStates.PendingReqs)
+                    .withEvent(PEvents.eWithDrawResp.class, this::Anon_4)
+                    .withEvent(PEvents.eWithDrawReq.class, p -> { Anon_5(p); gotoState(PrtStates.PendingReqs); })
+                    .build());
+        };
 
         public java.util.List<Class<? extends prt.events.PEvent<?>>> getEventTypes() {
             return java.util.Arrays.asList(PEvents.eWithDrawReq.class, PEvents.eWithDrawResp.class);

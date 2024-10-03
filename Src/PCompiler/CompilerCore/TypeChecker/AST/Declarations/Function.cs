@@ -37,10 +37,22 @@ namespace Plang.Compiler.TypeChecker.AST.Declarations
                          sourceNode is PParser.ScenarioDeclContext);
             Name = name;
             SourceLocation = sourceNode;
+            CanCreate = false;
+            CanSend = false;
+            IsNondeterministic = false;
+            CanReceive = false;
+            CanRaiseEvent = false;
+            CanChangeState = false;
         }
 
         public Function(ParserRuleContext sourceNode) : this("", sourceNode)
         {
+            CanCreate = false;
+            CanSend = false;
+            IsNondeterministic = false;
+            CanReceive = false;
+            CanRaiseEvent = false;
+            CanChangeState = false;
         }
 
         public Machine Owner { get; set; }
@@ -95,14 +107,14 @@ namespace Plang.Compiler.TypeChecker.AST.Declarations
 
         public bool IsAnon => string.IsNullOrEmpty(Name);
 
-        public bool? CanChangeState { get; set; }
-        public bool? CanRaiseEvent { get; set; }
-        public bool? CanReceive { get; set; }
+        public bool CanChangeState { get; set; }
+        public bool CanRaiseEvent { get; set; }
+        public bool CanReceive { get; set; }
 
-        public bool? CanSend { get; set; }
+        public bool CanSend { get; set; }
 
-        public bool? CanCreate { get; set; }
-        public bool? IsNondeterministic { get; set; }
+        public bool CanCreate { get; set; }
+        public bool IsNondeterministic { get; set; }
 
         public IEnumerable<Function> Callers => callers;
         public IEnumerable<Function> Callees => callees;

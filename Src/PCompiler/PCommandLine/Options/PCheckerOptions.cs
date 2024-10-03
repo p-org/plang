@@ -40,7 +40,7 @@ namespace Plang.Options
 
             var basicGroup = Parser.GetOrCreateGroup("Basic", "Basic options");
             basicGroup.AddArgument("timeout", "t", "Timeout in seconds (disabled by default)", typeof(uint));
-            basicGroup.AddArgument("memout", null, "Memory limit in Giga bytes (disabled by default)", typeof(double)).IsHidden = true;
+            basicGroup.AddArgument("memout", "m", "Memory limit in Giga bytes (disabled by default)", typeof(double));
             basicGroup.AddArgument("outdir", "o", "Dump output to directory (absolute or relative path)");
             basicGroup.AddArgument("verbose", "v", "Enable verbose log output during exploration", typeof(bool));
             basicGroup.AddArgument("debug", "d", "Enable debugging", typeof(bool)).IsHidden = true;
@@ -82,7 +82,6 @@ namespace Plang.Options
             advancedGroup.AddArgument("psym-args", null, "Specify a concatenated list of additional PSym-specific arguments to pass, each starting with a colon").IsHidden = true;
             advancedGroup.AddArgument("jvm-args", null, "Specify a concatenated list of PSym-specific JVM arguments to pass, each starting with a colon").IsHidden = true;
             advancedGroup.AddArgument("pattern", null, "The name of the pattern matcher generator", typeof(string));
-            advancedGroup.AddArgument("discard-after", null, "For feedback strategy, discard saved generators after saving N inputs", typeof(int));
             advancedGroup.AddArgument("conflict-analysis", null, "Enable POS conflict analysis.", typeof(bool));
         }
 
@@ -331,12 +330,6 @@ namespace Plang.Options
                     break;
                 case "pattern":
                     checkerConfiguration.PatternSource = (string) option.Value;
-                    break;
-                case "discard-after":
-                    checkerConfiguration.DiscardAfter = (int) option.Value;
-                    break;
-                case "fixed-priority":
-                    checkerConfiguration.DiversityBasedPriority = false;
                     break;
                 case "conflict-analysis":
                     checkerConfiguration.EnableConflictAnalysis = true;

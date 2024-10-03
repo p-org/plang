@@ -368,8 +368,7 @@ namespace PChecker.SystematicTesting
             }
             else if (checkerConfiguration.SchedulingStrategy is "rl")
             {
-                Strategy = new QLearningStrategy(checkerConfiguration.MaxUnfairSchedulingSteps, RandomValueGenerator,
-                    checkerConfiguration.DiversityBasedPriority);
+                Strategy = new QLearningStrategy(checkerConfiguration.MaxUnfairSchedulingSteps, RandomValueGenerator);
             }
             else if (checkerConfiguration.SchedulingStrategy is "dfs")
             {
@@ -438,20 +437,28 @@ namespace PChecker.SystematicTesting
             }
             catch (AggregateException aex)
             {
-                aex.Handle((ex) =>
+                if (aex.InnerException is OutOfMemoryException)
                 {
-                    Debug.WriteLine(ex.Message);
-                    Debug.WriteLine(ex.StackTrace);
-                    return true;
-                });
-
-                if (aex.InnerException is FileNotFoundException)
-                {
-                    Error.ReportAndExit($"{aex.InnerException.Message}");
+                    Logger.WriteLine("... Checker ran out of memory.");
                 }
+                else
+                {
+                    aex.Handle((ex) =>
+                    {
+                        Debug.WriteLine(ex.Message);
+                        Debug.WriteLine(ex.StackTrace);
+                        return true;
+                    });
 
-                Error.ReportAndExit("Exception thrown during testing outside the context of an actor, " +
-                                    "possibly in a test method. Please use /debug /v:2 to print more information.");
+                    if (aex.InnerException is FileNotFoundException)
+                    {
+                        Error.ReportAndExit($"{aex.InnerException.Message}");
+                    }
+
+
+                    Error.ReportAndExit("Exception thrown during testing outside the context of an actor, " +
+                                        "possibly in a test method. Please use /debug /v:2 to print more information.");
+                }
             }
             catch (Exception ex)
             {
@@ -500,6 +507,14 @@ namespace PChecker.SystematicTesting
                         if (CancellationTokenSource.IsCancellationRequested)
                         {
                             break;
+                        }
+
+                        if (Profiler.GetCurrentMemoryUsage() > _checkerConfiguration.MemoryLimit)
+                        {
+                            if (_checkerConfiguration.MemoryLimit != 0)
+                            {
+                                throw new OutOfMemoryException();
+                            }
                         }
 
                         // Runs a new testing schedule.
@@ -751,7 +766,7 @@ namespace PChecker.SystematicTesting
                 report.AppendFormat("... Reproduced {0} bug{1}.", TestReport.NumOfFoundBugs,
                     TestReport.NumOfFoundBugs == 1 ? string.Empty : "s");
                 report.AppendLine();
-                report.Append($"... Elapsed {Profiler.Results()} sec.");
+                report.Append($"... Elapsed {Profiler.GetElapsedTime():0.##} sec and used {Profiler.GetMaxMemoryUsage():0.##} GB.");
                 return report.ToString();
             }
 
@@ -783,7 +798,6 @@ namespace PChecker.SystematicTesting
                     if (newVal != null)
                         newDictionary[item.Key] = newVal;
                 }
-
                 return newDictionary;
             }
             else if (obj is List<object> list)
@@ -884,7 +898,7 @@ namespace PChecker.SystematicTesting
                 }
             }
 
-            Logger.WriteLine($"... Elapsed {Profiler.Results()} sec.");
+            Logger.WriteLine($"... Elapsed {Profiler.GetElapsedTime():0.##} sec and used {Profiler.GetMaxMemoryUsage():0.##} GB.");
         }
 
         /// <summary>

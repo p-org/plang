@@ -109,7 +109,7 @@ namespace Plang.Compiler.Backend.Java
             }
 
             var tname = Names.NameForNamedTuple(t);
-            WriteLine($"public static class {tname} implements {Constants.PValueClass}<{tname}> {{");
+            WriteLine($"public static class {tname} implements {Constants.PValueClass}<{tname}>, Serializable {{");
             WriteLine($"// {t.CanonicalRepresentation}");
 
             WriteNamedTupleFields(fields);

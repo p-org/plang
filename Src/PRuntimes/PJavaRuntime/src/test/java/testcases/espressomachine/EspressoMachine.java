@@ -340,6 +340,8 @@ public class EspressoMachine {
 
         public List<Class<? extends PEvent<?>>> getEventTypes() { return List.of(); } //XXX: dummy implementation.
 
+        public void reInitializeMonitor() {}; // dummy implementation.
+
         public enum States {
             STARTUP_STATE,
             WARMUP_STATE,

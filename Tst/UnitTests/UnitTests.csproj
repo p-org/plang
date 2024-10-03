@@ -16,6 +16,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Src\PChecker\CheckerCore\CheckerCore.csproj" />
     <ProjectReference Include="..\..\Src\PCompiler\CompilerCore\CompilerCore.csproj" />
-    <ProjectReference Include="..\..\Src\PRuntimes\PCSharpRuntime\CSharpRuntime.csproj" />
   </ItemGroup>
 </Project>

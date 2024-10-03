@@ -116,8 +116,10 @@ namespace Plang.Compiler
         Exception MoreThanOneParameterForHandlers(ParserRuleContext sourceLocation, int count);
 
         Exception IllegalChooseSubExprType(PParser.ChooseExprContext context, PLanguageType subExprType);
+        Exception IllegalChooseSubExprValue(PParser.ChooseExprContext context, int numChoices);
         Exception IllegalFunctionUsedInSpecMachine(Function function, Machine callerOwner);
 
         String SpecObservesSetIncompleteWarning(ParserRuleContext loc, PEvent ev, Machine machine);
+        Exception DuplicateBindings(ParserRuleContext loc, Interface @interface);
     }
 }

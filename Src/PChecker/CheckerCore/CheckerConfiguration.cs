@@ -293,18 +293,6 @@ namespace PChecker
         public string JvmArgs;
 
         /// <summary>
-        /// For feedback strategy, discard saved generators if the size of the buffer is greater than N.
-        /// </summary>
-        [DataMember]
-        public int DiscardAfter;
-
-        /// <summary>
-        /// For QL strategy, schedule generator mutations based on diversity.
-        /// </summary>
-        [DataMember]
-        public bool DiversityBasedPriority;
-
-        /// <summary>
         /// Enable conflict analysis for scheduling optimization.
         /// </summary>
         [DataMember]
@@ -355,8 +343,6 @@ namespace PChecker
 
             EnableColoredConsoleOutput = false;
             DisableEnvironmentExit = true;
-            DiscardAfter = 100;
-            DiversityBasedPriority = true;
             EnableConflictAnalysis = false;
 
             PSymArgs = "";

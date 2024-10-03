@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
 using PChecker.Coverage;
+using PChecker.Utilities;
 
 namespace PChecker.SystematicTesting
 {
@@ -189,6 +190,31 @@ namespace PChecker.SystematicTesting
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns a simple string testing report with only the keys and values.
+        /// </summary>
+        public string GetSummaryText(Profiler Profiler) {
+            var report = new StringBuilder();
+
+            report.AppendFormat("bugs:{0}", NumOfFoundBugs);
+            report.AppendLine();
+
+            var totalExploredSchedules = NumOfExploredFairSchedules +
+                                         NumOfExploredUnfairSchedules;
+            report.AppendFormat("schedules:{0}", totalExploredSchedules);
+            report.AppendLine();
+
+            report.AppendFormat("max_depth:{0}", MaxExploredFairSteps < 0 ? 0 : MaxExploredFairSteps);
+            report.AppendLine();
+
+            report.AppendFormat($"time_seconds:{Profiler.GetElapsedTime():0.##}");
+            report.AppendLine();
+
+            report.AppendFormat($"memory_max_mb:{Profiler.GetMaxMemoryUsage():0.##}");
+
+            return report.ToString();
         }
 
         /// <summary>

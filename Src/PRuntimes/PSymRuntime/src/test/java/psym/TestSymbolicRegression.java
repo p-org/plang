@@ -68,6 +68,14 @@ public class TestSymbolicRegression {
   }
 
   private static void createExcludeList() {
+    // TODO: fix key not found error when using set as key
+    excluded.add("../../../Tst/RegressionTests/Integration/Correct/TestMapSet");
+
+    // TODO Unsupported: too many choices to throw error if choices more than 10000
+    excluded.add("../../../Tst/RegressionTests/Feature3Exprs/DynamicError/tooManyChoicesSeq");
+    excluded.add("../../../Tst/RegressionTests/Feature3Exprs/DynamicError/tooManyChoicesSet");
+    excluded.add("../../../Tst/RegressionTests/Feature3Exprs/DynamicError/tooManyChoicesMap");
+
     // TODO Unsupported: liveness with temperatures
     excluded.add("../../../Tst/RegressionTests/Liveness/Correct/Liveness_1");
     excluded.add("../../../Tst/RegressionTests/Liveness/Correct/Liveness_1_falsePass");

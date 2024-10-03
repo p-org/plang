@@ -76,7 +76,7 @@ namespace Plang.Compiler.Backend.Java {
         {
             var cname = Names.GetNameForDecl(_currentMachine);
 
-            WriteLine($"public static class {cname} extends prt.Monitor<{cname}.{Constants.StateEnumName}> {{");
+            WriteLine($"public static class {cname} extends prt.Monitor<{cname}.{Constants.StateEnumName}> implements Serializable {{");
 
             WriteLine();
             WriteSupplierCDef(cname);
@@ -141,7 +141,7 @@ namespace Plang.Compiler.Backend.Java {
                 return;
             }
 
-            if (f.CanReceive == true)
+            if (f.CanReceive)
             {
                 WriteLine($"// Async function {f.Name} elided");
                 return;
@@ -228,11 +228,11 @@ namespace Plang.Compiler.Backend.Java {
             // If this function has exceptional control flow (for raising events or state transition)
             // we need to annotate it appropriately.
             var throwables = new List<string>();
-            if (f.CanChangeState == true)
+            if (f.CanChangeState)
             {
                 throwables.Add("prt.exceptions.TransitionException");
             }
-            if (f.CanRaiseEvent == true)
+            if (f.CanRaiseEvent)
             {
                 throwables.Add("prt.exceptions.RaiseEventException");
             }
@@ -252,9 +252,19 @@ namespace Plang.Compiler.Backend.Java {
 
             foreach (var s in _currentMachine.States)
             {
-                WriteStateBuilderDecl(s);
+                WriteStateBuilderDecl(s, true);
             }
             WriteLine("} // constructor");
+            WriteLine();
+
+            WriteLine($"public void reInitializeMonitor() {{");
+            
+            foreach (var s in _currentMachine.States)
+            {
+                WriteStateBuilderDecl(s, false);
+            }
+            WriteLine("}");
+
         }
 
         private void WriteEventsAccessor()
@@ -271,9 +281,14 @@ namespace Plang.Compiler.Backend.Java {
             WriteLine("}");
         }
 
-        private void WriteStateBuilderDecl(State s)
+        private void WriteStateBuilderDecl(State s, bool isConstructor)
         {
-            WriteLine($"addState(prt.State.keyedOn({Names.IdentForState(s)})");
+            if (isConstructor) {
+                WriteLine($"addState(prt.State.keyedOn({Names.IdentForState(s)})");
+            } else {
+                WriteLine($"registerState(prt.State.keyedOn({Names.IdentForState(s)})");
+            }
+            
             if (s.IsStart)
             {
                 WriteLine($".isInitialState(true)");

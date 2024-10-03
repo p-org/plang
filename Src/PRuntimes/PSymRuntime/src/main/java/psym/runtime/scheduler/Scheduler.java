@@ -16,6 +16,7 @@ import psym.runtime.machine.events.Message;
 import psym.runtime.scheduler.search.symmetry.SymmetryTracker;
 import psym.runtime.statistics.SearchStats;
 import psym.utils.Assert;
+import psym.utils.exception.BugFoundException;
 import psym.utils.random.NondetUtil;
 import psym.valuesummary.*;
 
@@ -148,7 +149,14 @@ public abstract class Scheduler implements SchedulerInterface {
     if (!zeroGuard.isFalse()) {
       bound = bound.updateUnderGuard(zeroGuard, new PrimitiveVS<Integer>(1));
     }
-    for (int i = 0; i < IntegerVS.maxValue(bound); i++) {
+    int maxBound = IntegerVS.maxValue(bound);
+    if (maxBound > 10000) {
+      Guard maxBoundGuard = bound.getGuardFor(maxBound);
+      throw new BugFoundException(
+              String.format("choose expects a parameter with at most 10,000 choices, got %d choices instead.", maxBound),
+              maxBoundGuard);
+    }
+    for (int i = 0; i < maxBound; i++) {
       Guard cond = IntegerVS.lessThan(i, bound).getGuardFor(true);
       choices.add(new PrimitiveVS<>(i).restrict(cond).restrict(pc));
     }
@@ -190,6 +198,13 @@ public abstract class Scheduler implements SchedulerInterface {
 
   public List<ValueSummary> getNextElementChoices(ListVS candidates, Guard pc) {
     PrimitiveVS<Integer> size = candidates.size();
+    int maxSize = IntegerVS.maxValue(size);
+    if (maxSize > 10000) {
+      Guard maxSizeGuard = size.getGuardFor(maxSize);
+      throw new BugFoundException(
+              String.format("choose expects a parameter with at most 10,000 choices, got %d choices instead.", maxSize),
+              maxSizeGuard);
+    }
     PrimitiveVS<Integer> index = new PrimitiveVS<>(0).restrict(size.getUniverse());
     List<ValueSummary> list = new ArrayList<>();
     while (BooleanVS.isEverTrue(IntegerVS.lessThan(index, size))) {

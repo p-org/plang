@@ -411,7 +411,11 @@ namespace Plang.Compiler.TypeChecker
                     return new ChooseExpr(context, subExpr, mapType.KeyType);
 
                 case PrimitiveType primType when primType.IsSameTypeAs(PrimitiveType.Int):
+                {
+                    if (subExpr is IntLiteralExpr subExprAsInt && subExprAsInt.Value > 10000)
+                        throw handler.IllegalChooseSubExprValue(context, subExprAsInt.Value);
                     return new ChooseExpr(context, subExpr, PrimitiveType.Int);
+                }
 
                 default:
                     throw handler.IllegalChooseSubExprType(context, subExprType);

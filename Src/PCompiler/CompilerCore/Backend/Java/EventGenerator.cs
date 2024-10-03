@@ -51,7 +51,7 @@ namespace Plang.Compiler.Backend.Java
             var payloadType = argType.TypeName;
             var payloadRefType = argType.ReferenceTypeName;
 
-            WriteLine($"public static class {eventName} extends {Constants.PEventsClass}<{payloadRefType}> {{");
+            WriteLine($"public static class {eventName} extends {Constants.PEventsClass}<{payloadRefType}> implements Serializable {{");
 
             var hasPayload = !(argType is TypeManager.JType.JVoid);
             if (hasPayload)

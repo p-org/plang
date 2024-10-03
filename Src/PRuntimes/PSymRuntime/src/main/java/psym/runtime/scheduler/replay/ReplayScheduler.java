@@ -15,6 +15,7 @@ import psym.runtime.scheduler.Schedule;
 import psym.runtime.scheduler.Scheduler;
 import psym.runtime.scheduler.search.symmetry.SymmetryMode;
 import psym.utils.Assert;
+import psym.utils.exception.BugFoundException;
 import psym.utils.exception.LivenessException;
 import psym.valuesummary.*;
 
@@ -197,6 +198,13 @@ public class ReplayScheduler extends Scheduler {
 
   @Override
   public PrimitiveVS<Integer> getNextInteger(PrimitiveVS<Integer> bound, Guard pc) {
+    int maxBound = IntegerVS.maxValue(bound);
+    if (maxBound > 10000) {
+      Guard maxBoundGuard = bound.getGuardFor(maxBound);
+      throw new BugFoundException(
+              String.format("choose expects a parameter with at most 10,000 choices, got %d choices instead.", maxBound),
+              maxBoundGuard);
+    }
     PrimitiveVS<Integer> res = schedule.getRepeatInt(choiceDepth);
     ScheduleWriter.logInteger(res);
     choiceDepth++;
@@ -205,6 +213,14 @@ public class ReplayScheduler extends Scheduler {
 
   @Override
   public ValueSummary getNextPrimitiveList(ListVS<? extends ValueSummary> candidates, Guard pc) {
+    PrimitiveVS<Integer> size = candidates.size();
+    int maxSize = IntegerVS.maxValue(size);
+    if (maxSize > 10000) {
+      Guard maxSizeGuard = size.getGuardFor(maxSize);
+      throw new BugFoundException(
+              String.format("choose expects a parameter with at most 10,000 choices, got %d choices instead.", maxSize),
+              maxSizeGuard);
+    }
     ValueSummary res = getNextElementFlattener(schedule.getRepeatElement(choiceDepth));
     List<GuardedValue<?>> gv = ValueSummary.getGuardedValues(res);
     assert (gv.size() == 1);

@@ -515,7 +515,7 @@ namespace Plang.Compiler.TypeChecker
                             pEvent.PayloadType);
                     }
 
-                    if (recvHandler.CanChangeState == true)
+                    if (recvHandler.CanChangeState)
                     {
                         if (!method.Signature.ReturnType.IsSameTypeAs(PrimitiveType.Null))
                         {
@@ -525,7 +525,7 @@ namespace Plang.Compiler.TypeChecker
                         method.CanChangeState = true;
                     }
 
-                    if (recvHandler.CanRaiseEvent == true)
+                    if (recvHandler.CanRaiseEvent)
                     {
                         if (!method.Signature.ReturnType.IsSameTypeAs(PrimitiveType.Null))
                         {

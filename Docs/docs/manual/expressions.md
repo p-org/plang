@@ -342,3 +342,12 @@ The choose operation can be used to model nondeterministic environment machines 
 
 !!! note ""
     Performing a `choose` over an empty collection leads to an error. Also, `choose` from a `map` value returns a random key from the map.
+
+Note that the maximum number of choices allowed in a `choose(expr)` is 10,000. Performing a `choose` with an `int` value greater than 10000 or over a collection with more than 10000 elements leads to an error.
+
+``` java
+choose(10001) // throws a compile-time error
+choose(x)     // throws a runtime error if x is of integer type and has value greater than 10000
+choose(x)     // throws a runtime error if x is of seq/set/map type and has size greater than 10000 elements
+```
+

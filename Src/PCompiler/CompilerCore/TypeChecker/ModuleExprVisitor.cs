@@ -98,6 +98,13 @@ namespace Plang.Compiler.TypeChecker
         public override IPModuleExpr VisitPrimitiveModuleExpr([NotNull] PParser.PrimitiveModuleExprContext context)
         {
             var bindings = context._bindslist.Select(VisitBindExpr).ToList();
+            var seenInterfaces = new List<string>();
+            foreach (var i in bindings.Select(x => x.Item1))
+            {
+                if (seenInterfaces.Contains(i.Name))
+                    throw handler.DuplicateBindings(context, i);
+                seenInterfaces.Add(i.Name);
+            }
             return new BindModuleExpr(context, bindings);
         }
 
