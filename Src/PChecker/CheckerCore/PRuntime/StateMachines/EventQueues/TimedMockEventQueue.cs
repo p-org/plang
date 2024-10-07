@@ -25,7 +25,7 @@ namespace PChecker.StateMachines.EventQueues.Mocks
         private readonly IStateMachineManager StateMachineManager;
 
         /// <summary>
-        /// The actor that owns this queue.
+        /// The state machine that owns this queue.
         /// </summary>
         private readonly StateMachine StateMachine;
 

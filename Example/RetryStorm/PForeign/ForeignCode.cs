@@ -3,11 +3,12 @@ using System.Runtime;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using Plang.CSharpRuntime;
-using Plang.CSharpRuntime.Values;
-using Plang.CSharpRuntime.Exceptions;
+using PChecker.PRuntime.Values;
+using PChecker.PRuntime;
+using PChecker.PRuntime.Exceptions;
 using System.Threading;
 using System.Threading.Tasks;
+using PChecker.StateMachines;
 
 #pragma warning disable 162, 219, 414
 namespace PImplementation
@@ -15,9 +16,9 @@ namespace PImplementation
   public static partial class GlobalFunctions
   {
     static System.Random random = new System.Random();
-    public static PrtFloat Random(PMachine pMachine)
+    public static PFloat Random(StateMachine stateMachine)
     {
-      return (new PrtFloat(random.NextDouble()));
+      return (new PFloat(random.NextDouble()));
     }
   }
 }

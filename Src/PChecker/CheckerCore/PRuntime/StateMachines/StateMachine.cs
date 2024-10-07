@@ -54,7 +54,7 @@ namespace PChecker.StateMachines
         /// The inbox of the state machine. Incoming events are enqueued here.
         /// Events are dequeued to be processed.
         /// </summary>
-        private static protected IEventQueue Inbox;
+        private protected IEventQueue Inbox;
         
         /// <summary>
         /// Cache of state machine types to a map of action names to action declarations.

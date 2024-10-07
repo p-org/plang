@@ -3,9 +3,10 @@ using System.Runtime;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using Plang.CSharpRuntime;
-using Plang.CSharpRuntime.Values;
-using Plang.CSharpRuntime.Exceptions;
+using PChecker.PRuntime.Values;
+using PChecker.PRuntime;
+using PChecker.PRuntime.Exceptions;
+using PChecker.StateMachines;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,13 +16,13 @@ namespace PImplementation
   public static partial class GlobalFunctions
   {
     static System.Random random = new System.Random();
-    public static PrtFloat Expovariate(PrtFloat lambda, PMachine pMachine)
+    public static PFloat Expovariate(PFloat lambda, StateMachine stateMachine)
     {
-      return (new PrtFloat(Math.Log(1 - random.NextDouble()))/(-lambda));
+      return (new PFloat(Math.Log(1 - random.NextDouble()))/(-lambda));
     }
-    public static PrtFloat Random(PMachine pMachine)
+    public static PFloat Random(StateMachine stateMachine)
     {
-      return (new PrtFloat(random.NextDouble()));
+      return (new PFloat(random.NextDouble()));
     }
   }
 }

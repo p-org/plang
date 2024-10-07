@@ -1096,6 +1096,13 @@ namespace Plang.Compiler.Backend.CSharp
                     break;
 
                 case SendStmt sendStmt:
+                    if (sendStmt.DelayDistribution != null)
+                    {
+                        WriteExpr(context, output, sendStmt.Evt);
+                        context.Write(output, ".DelayDistribution = ");
+                        WriteExpr(context, output, sendStmt.DelayDistribution);
+                        context.WriteLine(output, ";");
+                    }
                     if (sendStmt.Arguments.Any())
                     {
                         WriteExpr(context, output, sendStmt.Evt);
@@ -1104,17 +1111,9 @@ namespace Plang.Compiler.Backend.CSharp
                         context.WriteLine(output, ";");
                     }
                     context.Write(output, "currentMachine.SendEvent(");
-                    if (sendStmt.DelayDistribution != null)
-                    {
-                        WriteExpr(context, output, sendStmt.Evt);
-                        context.Write(output, ".DelayDistribution = ");
-                        WriteExpr(context, output, sendStmt.DelayDistribution);
-                        context.WriteLine(output, ";");
-                    }
                     WriteExpr(context, output, sendStmt.MachineExpr);
                     context.Write(output, ", (Event)");
                     WriteExpr(context, output, sendStmt.Evt);
-
                     context.WriteLine(output, ");");
                     break;
 

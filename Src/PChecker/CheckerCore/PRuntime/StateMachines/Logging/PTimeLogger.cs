@@ -48,7 +48,7 @@ namespace PChecker.StateMachines.Logging
         {
             var pe = (Event)e;
             var payload = pe.Payload == null ? "null" : pe.Payload.ToEscapedString().Replace(" ", "").Replace(",", "|");
-            InMemoryLogger.WriteLine(e.EnqueueTime.GetTime() + ", enqueue," + e + "," + payload + "," + "," + id);
+            InMemoryLogger.WriteLine(e.EnqueueTime.GetTime() + ", enqueue," + e + "," + payload + "," + id);
         }
 
         /// <inheritdoc />
