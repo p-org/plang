@@ -269,6 +269,18 @@ namespace Plang.Compiler.TypeChecker
             if (cardinality > uint.MaxValue) throw Handler.ValueOutOfRange(context.cardinality(), "uint32");
             machine.Assume = hasAssume ? (uint?) cardinality : null;
             machine.Assert = hasAssert ? (uint?) cardinality : null;
+            
+            // dequeueOption?
+            if (context.dequeueOption() != null)
+            {
+                var dequeueOption = context.dequeueOption().GetText();
+                if (dequeueOption != "eventqueue" && dequeueOption != "eventbag" && dequeueOption != "eventchannel")
+                {
+                    Debug.Fail($"Invalid dequeue option: {dequeueOption}. Allowed: 'eventqueue', 'eventbag', 'eventchannel'.");
+                }
+                machine.DequeueOption = dequeueOption;
+            }
+
 
             // receivesSends*
             foreach (var receivesSends in context.receivesSends())

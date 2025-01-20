@@ -84,6 +84,11 @@ MAIN		   : 'main' ;
 RECEIVES  : 'receives' ;
 SENDS     : 'sends' ;
 
+// machine declarations
+EVENTQUEUE: 'eventqueue' ;
+EVENTBAG: 'eventbag' ;
+EVENTCHANNEL: 'eventchannel' ;
+
 // Common keywords
 CREATES : 'creates' ;
 TO      : 'to' ;

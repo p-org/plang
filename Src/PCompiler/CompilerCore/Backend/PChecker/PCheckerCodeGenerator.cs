@@ -556,6 +556,11 @@ namespace Plang.Compiler.Backend.CSharp
                 context.WriteLine(output, $"this.creates.Add(nameof({context.Names.GetNameForDecl(iCreate)}));");
             }
 
+            if (machine.DequeueOption != null)
+            {
+                context.WriteLine(output, $"this.InboxType=\"{machine.DequeueOption}\";");
+            }
+
             context.WriteLine(output, "}");
             context.WriteLine(output);
         }

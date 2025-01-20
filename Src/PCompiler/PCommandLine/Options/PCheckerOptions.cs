@@ -400,7 +400,7 @@ namespace Plang.Options
                 {
                     if (checkerConfiguration.Mode == CheckerMode.BugFinding)
                     {
-                        if (!fileName.Contains($"CSharp{pathSep}"))
+                        if (!fileName.Contains($"PChecker{pathSep}"))
                             continue;
                         if (fileName.EndsWith("PCheckerCore.dll")
                             || fileName.EndsWith("PCSharpRuntime.dll")

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -38,6 +39,7 @@ namespace Plang.Compiler.TypeChecker.AST.Declarations
         public string Name { get; }
         public IStateContainer ParentStateContainer { get; } = null;
         public IEnumerable<State> States => states.Values;
+        public string DequeueOption { get; set;}
 
         public State GetState(string stateName)
         {

@@ -53,11 +53,6 @@ namespace PChecker.Runtime.StateMachines.EventQueues
         Task<Event> ReceiveEventAsync(params Tuple<Type, Func<Event, bool>>[] events);
 
         /// <summary>
-        /// Returns the cached state of the queue.
-        /// </summary>
-        int GetCachedState();
-
-        /// <summary>
         /// Closes the queue, which stops any further event enqueues.
         /// </summary>
         void Close();

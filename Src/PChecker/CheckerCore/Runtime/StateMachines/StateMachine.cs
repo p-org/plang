@@ -55,6 +55,11 @@ namespace PChecker.Runtime.StateMachines
         private protected IEventQueue Inbox;
         
         /// <summary>
+        /// Event inbox type.
+        /// </summary>
+        public string InboxType;
+        
+        /// <summary>
         /// Keeps track of state machine's current vector time.
         /// </summary>
         public VectorTime VectorTime;
@@ -1381,8 +1386,6 @@ namespace PChecker.Runtime.StateMachines
 
                 hash = (hash * 31) + Manager.GetCachedState();
                 
-                hash = (hash * 31) + Inbox.GetCachedState();
-
                 return hash;
             }
         }

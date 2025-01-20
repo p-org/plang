@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using System;
@@ -12,7 +12,7 @@ namespace PChecker.Runtime.StateMachines.EventQueues
     /// <summary>
     /// Implements a queue of events that is used during testing.
     /// </summary>
-    internal sealed class EventQueue : IEventQueue
+    internal sealed class EventChannel : IEventQueue
     {
         /// <summary>
         /// Manages the state machine that owns this queue.
@@ -27,8 +27,14 @@ namespace PChecker.Runtime.StateMachines.EventQueues
         /// <summary>
         /// The internal queue that contains events with their metadata.
         /// </summary>
-        private readonly LinkedList<(Event e, EventInfo info)> Queue;
-
+        private readonly Dictionary<string, LinkedList<(Event e, EventInfo info)>> Map;
+        
+        
+        /// <summary>
+        /// The list of event sender state machines.
+        /// </summary>
+        private List<string> SenderMachineNames;
+        
         /// <summary>
         /// The raised event and its metadata, or null if no event has been raised.
         /// </summary>
@@ -43,11 +49,6 @@ namespace PChecker.Runtime.StateMachines.EventQueues
         private Dictionary<Type, Func<Event, bool>> EventWaitTypes;
 
         /// <summary>
-        /// Task completion source that contains the event obtained using an explicit receive.
-        /// </summary>
-        private TaskCompletionSource<Event> ReceiveCompletionSource;
-
-        /// <summary>
         /// Checks if the queue is accepting new events.
         /// </summary>
         private bool IsClosed;
@@ -55,7 +56,7 @@ namespace PChecker.Runtime.StateMachines.EventQueues
         /// <summary>
         /// The size of the queue.
         /// </summary>
-        public int Size => Queue.Count;
+        public int Size => Map.Count;
 
         /// <summary>
         /// Checks if an event has been raised.
@@ -65,11 +66,12 @@ namespace PChecker.Runtime.StateMachines.EventQueues
         /// <summary>
         /// Initializes a new instance of the <see cref="EventQueue"/> class.
         /// </summary>
-        internal EventQueue(IStateMachineManager stateMachineManager, StateMachine stateMachine)
+        internal EventChannel(IStateMachineManager stateMachineManager, StateMachine stateMachine)
         {
             StateMachineManager = stateMachineManager;
             StateMachine = stateMachine;
-            Queue = new LinkedList<(Event, EventInfo)>();
+            Map = new Dictionary<string, LinkedList<(Event e, EventInfo info)>>();
+            SenderMachineNames = new List<string>();
             EventWaitTypes = new Dictionary<Type, Func<Event, bool>>();
             IsClosed = false;
         }
@@ -87,13 +89,18 @@ namespace PChecker.Runtime.StateMachines.EventQueues
             {
                 EventWaitTypes.Clear();
                 StateMachineManager.OnReceiveEvent(e, info);
-                ReceiveCompletionSource.SetResult(e);
                 return EnqueueStatus.EventHandlerRunning;
             }
 
             StateMachineManager.OnEnqueueEvent(e, info);
-            Queue.AddLast((e, info));
-
+            string senderStateMachineName = info.OriginInfo.SenderStateMachineId.ToString();
+            if (!Map.ContainsKey(senderStateMachineName))
+            {
+                Map[senderStateMachineName] = new LinkedList<(Event e, EventInfo info)>();
+                SenderMachineNames.Add(senderStateMachineName);
+            }
+            Map[senderStateMachineName].AddLast((e, info));
+            
             if (!StateMachineManager.IsEventHandlerRunning)
             {
                 if (TryDequeueEvent(true).e is null)
@@ -165,10 +172,38 @@ namespace PChecker.Runtime.StateMachines.EventQueues
         /// </summary>
         private (Event e, EventInfo info) TryDequeueEvent(bool checkOnly = false)
         {
+            List<string> temp = [];
+            (Event, EventInfo) nextAvailableEvent = default;
+            while (SenderMachineNames.Count > 0)
+            {
+                var randomIndex = StateMachine.RandomInteger(SenderMachineNames.Count);
+                string stateMachine = SenderMachineNames[randomIndex];
+                SenderMachineNames.RemoveAt(randomIndex);
+                temp.Add(stateMachine);
+                if (Map.TryGetValue(stateMachine, out var eventList) && eventList.Count > 0)
+                {
+                    nextAvailableEvent = TryDequeueEvent(stateMachine, checkOnly);
+                }
+
+                if (nextAvailableEvent != default)
+                {
+                    SenderMachineNames.AddRange(temp);
+                    break;
+                }
+            }
+            SenderMachineNames.AddRange(temp);
+            return nextAvailableEvent;
+        }
+
+        /// <summary>
+        /// Dequeues the next event and its metadata, if there is one available, else returns null.
+        /// </summary>
+        private (Event e, EventInfo info) TryDequeueEvent(string stateMachineName, bool checkOnly = false)
+        {
             (Event, EventInfo) nextAvailableEvent = default;
 
             // Iterates through the events and metadata in the inbox.
-            var node = Queue.First;
+            var node = Map[stateMachineName].First;
             while (node != null)
             {
                 var nextNode = node.Next;
@@ -179,7 +214,7 @@ namespace PChecker.Runtime.StateMachines.EventQueues
                     if (!checkOnly)
                     {
                         // Removes an ignored event.
-                        Queue.Remove(node);
+                        Map[stateMachineName].Remove(node);
                     }
 
                     node = nextNode;
@@ -192,7 +227,7 @@ namespace PChecker.Runtime.StateMachines.EventQueues
                     nextAvailableEvent = currentEvent;
                     if (!checkOnly)
                     {
-                        Queue.Remove(node);
+                        Map[stateMachineName].Remove(node);
                     }
 
                     break;
@@ -257,30 +292,6 @@ namespace PChecker.Runtime.StateMachines.EventQueues
             StateMachine.Runtime.NotifyReceiveCalled(StateMachine);
 
             (Event e, EventInfo info) receivedEvent = default;
-            var node = Queue.First;
-            while (node != null)
-            {
-                // Dequeue the first event that the caller waits to receive, if there is one in the queue.
-                if (eventWaitTypes.TryGetValue(node.Value.e.GetType(), out var predicate) &&
-                    (predicate is null || predicate(node.Value.e)))
-                {
-                    receivedEvent = node.Value;
-                    Queue.Remove(node);
-                    break;
-                }
-
-                node = node.Next;
-            }
-
-            if (receivedEvent == default)
-            {
-                ReceiveCompletionSource = new TaskCompletionSource<Event>();
-                EventWaitTypes = eventWaitTypes;
-                StateMachineManager.OnWaitEvent(EventWaitTypes.Keys);
-                return ReceiveCompletionSource.Task;
-            }
-
-            StateMachineManager.OnReceiveEventWithoutWaiting(receivedEvent.e, receivedEvent.info);
             return Task.FromResult(receivedEvent.e);
         }
 
@@ -300,12 +311,15 @@ namespace PChecker.Runtime.StateMachines.EventQueues
                 return;
             }
 
-            foreach (var (e, info) in Queue)
+            foreach (var (_, linkedList) in Map)
             {
-                StateMachineManager.OnDropEvent(e, info);
+                foreach (var (e, info) in linkedList)
+                {
+                    StateMachineManager.OnDropEvent(e, info);
+                }
             }
 
-            Queue.Clear();
+            Map.Clear();
         }
 
         /// <inheritdoc/>
